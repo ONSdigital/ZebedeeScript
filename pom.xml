@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.onsdigital</groupId>
-    <artifactId>playfair</artifactId>
+    <artifactId>zebedeescript</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <dependencies>
@@ -56,7 +56,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.github.onsdigital.playfair.Cli</mainClass>
+                            <mainClass>com.github.onsdigital.zebedeescript.CommandLine</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
