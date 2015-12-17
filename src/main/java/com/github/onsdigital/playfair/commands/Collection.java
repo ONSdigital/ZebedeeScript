@@ -71,12 +71,12 @@ public class Collection {
         }
     }
 
-    public void build(Connection connection, Http session, String collectionName, Path path) {
+    public CollectionDescription build(Connection connection, Http session, String collectionName, Path path) {
         create(connection, session, collectionName);
 
         if (this.description != null) {
             FlatsyDatabase db = new FlatsyFlatFileDatabase(path);
-            FlatsyCursor cursor = db.root().query("{is_file}");
+            FlatsyCursor cursor = db.root().query("files");
             while (cursor.next()) {
                 String uri = cursor.currentObject().uri;
                 add(connection, session, uri, path.resolve(Paths.get(uri)));
@@ -88,21 +88,46 @@ public class Collection {
                 System.out.println("!  error loading collection description after upload");
             }
         }
+
+        try {
+            this.description = get(connection, session, this.description.id).body;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return this.description;
     }
 
     public void complete(Connection connection, Http session) {
         if (this.description != null) {
-            for (String uri : this.description.completeUris) {
+
+            // Update the list of in progress uris
+            try {
+                this.description = get(connection, session, this.description.id).body;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            for (String uri : this.description.inProgressUris) {
                 try {
-                    Response<String> stringResponse = reviewItem(connection, session, this.description.id, uri);
+                    Response<String> stringResponse = completeItem(connection, session, this.description.id, uri);
                 } catch (IOException e) {
                     System.out.println("!  error reviewing connection");
                 }
             }
         }
     }
+
     public void review(Connection connection, Http session) {
         if (this.description != null) {
+
+            // Update the list of currently complete uris
+            try {
+                this.description = get(connection, session, this.description.id).body;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             for (String uri : this.description.completeUris) {
                 try {
                     Response<String> stringResponse = reviewItem(connection, session, this.description.id, uri);
@@ -112,23 +137,26 @@ public class Collection {
             }
         }
     }
-
-
 
     private static Response<String> upload(Connection connection, Http session, String collectionId, String uri, File file) throws IOException {
         Endpoint contentEndpoint = connection.content.addPathSegment(collectionId).setParameter("uri", uri);
         return session.post(contentEndpoint, file, String.class);
     }
+
     private static Response<CollectionDescription> get(Connection connection, Http session, String id) throws IOException {
         Endpoint idUrl = connection.collection.addPathSegment(id);
         return session.get(idUrl, CollectionDescription.class);
     }
+
     private static Response<String> reviewItem(Connection connection, Http session, String collectionID, String uri) throws IOException {
         Endpoint contentEndpoint = connection.review.addPathSegment(collectionID).setParameter("uri", uri);
         return session.post(contentEndpoint, "", String.class);
     }
+
     public static Response<String> completeItem(Connection connection, Http session, String collectionID, String uri) throws IOException {
         Endpoint contentEndpoint = connection.complete.addPathSegment(collectionID).setParameter("uri", uri);
         return session.post(contentEndpoint, "", String.class);
     }
+
+
 }

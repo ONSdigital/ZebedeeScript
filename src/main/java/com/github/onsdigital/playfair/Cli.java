@@ -3,10 +3,7 @@ package com.github.onsdigital.playfair;
 import com.github.davidcarboni.restolino.json.Serialiser;
 import com.github.onsdigital.playfair.commands.json.IsoDateSerializer;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,10 +15,10 @@ import java.util.Scanner;
  * Created by thomasridd on 07/12/2015.
  */
 public class Cli {
-    String mode = "playfair";
+    String mode = "z-script";
 
     static Flatsy flatsy = new Flatsy();
-    static Playfair playfair = new Playfair();
+    static ZebedeeScript zebedeeScript = new ZebedeeScript();
 
 
     public static void main(String[] args) {
@@ -46,7 +43,7 @@ public class Cli {
         System.out.println();
         System.out.println();
         System.out.println("---------------------------------------------------------------------------");
-        System.out.println("                   P L A Y F A I R   &   F L A T S Y                       ");
+        System.out.println("                        Z e b e d e e S c r i p t                          ");
         System.out.println("                 command line tools for the ons beta website               ");
         System.out.println("---------------------------------------------------------------------------");
         System.out.println();
@@ -55,18 +52,14 @@ public class Cli {
     private boolean processCommand(String command) {
         if (command.equalsIgnoreCase("exit")) {
             return false;
-        } else if (command.equalsIgnoreCase("flatsy")) {
-            mode = "flatsy";
-        } else if (command.equalsIgnoreCase("playfair")) {
-            mode = "playfair";
-        } else if (command.toLowerCase().startsWith("script")) {
+        } else if (command.trim().toLowerCase().startsWith("script")) {
             runScript(command);
         } else if (command.equalsIgnoreCase("") || command.startsWith("#") || command.startsWith("//")) {
 
-        } else if (mode.equalsIgnoreCase("flatsy")) {
+            // try to process with playfair ( a zebedee command )
+        } else if (zebedeeScript.processCommand(command) == false) {
+            // otherwise use flatsy ( a database command )
             flatsy.processCommand(command);
-        } else if (mode.equalsIgnoreCase("playfair")) {
-            playfair.processCommand(command);
         }
         return true;
     }

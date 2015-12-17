@@ -6,6 +6,13 @@ import com.github.onsdigital.playfair.commands.http.Http;
 import com.github.onsdigital.playfair.commands.http.Response;
 import com.github.onsdigital.playfair.commands.http.Sessions;
 import com.github.onsdigital.playfair.commands.json.Credentials;
+import com.github.thomasridd.flatsy.FlatsyDatabase;
+import com.github.thomasridd.flatsy.FlatsyFlatFileDatabase;
+import com.github.thomasridd.flatsy.FlatsyObjectType;
+import com.github.thomasridd.flatsy.operations.operators.Copy;
+import com.github.thomasridd.flatsy.operations.operators.CopyTo;
+import com.github.thomasridd.flatsy.operations.operators.Rename;
+import com.github.thomasridd.flatsy.operations.operators.Replace;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,11 +23,13 @@ import java.util.Scanner;
 /**
  * Created by thomasridd on 07/12/2015.
  */
-public class Playfair {
+public class ZebedeeScript {
 
     Credentials credentials;
     Connection connection = new Connection();
     Collection current;
+    FlatsyDatabase db;
+
     Http session;
 
     public boolean processCommand(String command) {
@@ -32,9 +41,19 @@ public class Playfair {
             commandLogin(components);
         } else if (components.get(0).equalsIgnoreCase("collection")) {
             commandCollection(components);
+        } else if (components.get(0).equalsIgnoreCase("from")) {
+            commandFrom(components);
+            return false; // we want flatsy to fix this one too so return false
+        } else if (components.get(0).equalsIgnoreCase("move")) {
+            commandMove(components);
+        } else {
+            return false;
         }
 
         return true;
+    }
+    private void commandFrom(List<String> components) {
+        db = new FlatsyFlatFileDatabase(Paths.get(components.get(1)));
     }
 
     /**
@@ -108,8 +127,8 @@ public class Playfair {
                 String sourcePath = components.get(3);
 
                 if (Files.exists(Paths.get(sourcePath))) {
-                    Collection collection = new Collection();
-                    collection.build(connection, session, collectionName, Paths.get(sourcePath));
+                    this.current = new Collection();
+                    this.current.build(connection, session, collectionName, Paths.get(sourcePath));
                 }
 
             } else {
@@ -123,8 +142,45 @@ public class Playfair {
             } else {
                 System.out.println("Command error for: collection add [collection name] [uri] [source path]");
             }
+        } else if (components.get(1).equalsIgnoreCase("complete")) {
+            if (this.current == null) {
+                System.out.println("Please sign into a collection with create, build, or checkout before completing items");
+            } else {
+                this.current.complete(connection, session);
+            }
+        } else if  (components.get(1).equalsIgnoreCase("review")) {
+            if (this.current == null) {
+                System.out.println("Please sign into a collection with create, build, or checkout before reviewing items");
+            } else {
+                this.current.review(connection, session);
+            }
         }
         return false;
     }
 
+    private boolean commandMove(List<String> components) {
+        if(db != null) {
+            String oldUri = components.get(1);
+            String newUri = components.get(2);
+
+            // if newUri exists delete
+            if (db.get(newUri).getType() != FlatsyObjectType.Null) {
+                db.delete(db.get(newUri));
+            }
+
+            db.root().apply(new Rename(strip(oldUri), strip(newUri)));
+
+            // big and ugly query (but that is what we are dealing with)
+            db.root().query("files").query("uri_ends data.json").apply(new Replace("\"" + oldUri + "\"", "\"" + newUri + "\""));
+            db.root().query("files").query("uri_ends data.json").apply(new Replace(oldUri + "/", newUri + "/"));
+        }
+        return false;
+    }
+
+    private String strip(String uri){
+        if (uri.startsWith("/")) {
+            return uri.substring(1);
+        }
+        return uri;
+    }
 }
