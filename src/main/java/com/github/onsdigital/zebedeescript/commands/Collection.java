@@ -63,15 +63,18 @@ public class Collection {
             if (upload.statusLine.getStatusCode() == HttpStatus.OK_200) {
                 System.out.println("uploaded " + uri);
             } else {
-                System.out.println("! error uploading file with code " + upload.statusLine.getReasonPhrase());
+                System.out.println("Error uploading file with code " + upload.statusLine.getReasonPhrase());
             }
         } catch (IOException e) {
-            System.out.println("! error uploading file " + file.toString());
+            System.out.println("Error uploading file " + file.toString());
         }
     }
 
     public CollectionDescription build(Connection connection, Http session, String collectionName, Path path) {
-        create(connection, session, collectionName);
+        if(!create(connection, session, collectionName)) {
+            System.out.println("Build connection failed");
+            return null;
+        };
 
         if (this.description != null) {
             FlatsyDatabase db = new FlatsyFlatFileDatabase(path);
@@ -84,14 +87,14 @@ public class Collection {
             try {
                 this.description = get(connection, session, this.description.id).body;
             } catch (IOException e) {
-                System.out.println("!  error loading collection description after upload");
+                System.out.println("Error loading collection description after upload");
             }
         }
 
         try {
             this.description = get(connection, session, this.description.id).body;
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error retrieving collection after build");
         }
 
         return this.description;

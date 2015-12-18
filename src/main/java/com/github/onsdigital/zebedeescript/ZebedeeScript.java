@@ -6,11 +6,15 @@ import com.github.onsdigital.zebedeescript.commands.http.Http;
 import com.github.onsdigital.zebedeescript.commands.http.Response;
 import com.github.onsdigital.zebedeescript.commands.http.Sessions;
 import com.github.onsdigital.zebedeescript.commands.json.Credentials;
+import com.github.onsdigital.zebedeescript.commands.json.PermissionDefinition;
+import com.github.onsdigital.zebedeescript.commands.json.User;
 import com.github.thomasridd.flatsy.FlatsyDatabase;
 import com.github.thomasridd.flatsy.FlatsyFlatFileDatabase;
 import com.github.thomasridd.flatsy.FlatsyObjectType;
 import com.github.thomasridd.flatsy.operations.operators.Rename;
 import com.github.thomasridd.flatsy.operations.operators.Replace;
+import org.apache.http.HttpStatus;
+import org.apache.http.NoHttpResponseException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,6 +48,8 @@ public class ZebedeeScript {
             return false; // we want flatsy to fix this one too so return false
         } else if (components.get(0).equalsIgnoreCase("move")) {
             commandMove(components);
+        } else if (components.get(0).equalsIgnoreCase("users")) {
+            commandUsers(components);
         } else {
             return false;
         }
@@ -173,6 +179,78 @@ public class ZebedeeScript {
             db.root().query("files").query("uri_ends data.json").apply(new Replace(oldUri + "/", newUri + "/"));
         }
         return false;
+    }
+
+    private boolean commandUsers(List<String> components) {
+        if (components.size() == 1) { return false; }
+
+        if (components.get(1).equalsIgnoreCase("add") && components.size() >= 4) {
+            User user = new User();
+            user.email = components.get(2);
+            user.name = components.get(3);
+            try {
+                Response<User> response = session.post(connection.users, user, User.class);
+                if (response.statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                    return true;
+                } else {
+                    System.out.println("user add failed with error:" + response.statusLine.getReasonPhrase());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        } else if(components.get(1).equalsIgnoreCase("password") && components.size() >= 4) {
+            Credentials newCredentials = new Credentials();
+            newCredentials.email = components.get(2);
+            newCredentials.password = components.get(3);
+
+            try {
+                Response<String> response = session.post(connection.password, newCredentials, String.class);
+                return response.statusLine.getStatusCode() == HttpStatus.SC_OK;
+            } catch (NoHttpResponseException e) {
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        } else if (components.get(1).equalsIgnoreCase("permissions") && components.size() >= 4) {
+
+            PermissionDefinition definition;
+            if (components.get(2).equalsIgnoreCase("publisher")) {
+                definition = permission(components.get(3), false, true);
+            } else if (components.get(2).equalsIgnoreCase("admin")) {
+                definition = permission(components.get(3), true, true);
+            } else if (components.get(2).equalsIgnoreCase("viewer")) {
+                definition = permission(components.get(3), false, false);
+            } else {
+                System.out.println("Command error for set permissions: users permissions [publisher/admin/viewer] <email>");
+                return false;
+            }
+
+            try {
+                Response<String> response = session.post(connection.permission, definition , String.class);
+                if (response.statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                    return true;
+                } else {
+                    System.out.println("Permissions set failed with error:" + response.statusLine.getReasonPhrase());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return false;
+    }
+
+    public PermissionDefinition permission(String email, Boolean admin, Boolean editor) {
+        PermissionDefinition permissionDefinition = new PermissionDefinition();
+        permissionDefinition.email = email;
+        permissionDefinition.admin = admin;
+        permissionDefinition.editor = editor;
+        return permissionDefinition;
     }
 
     private String strip(String uri){

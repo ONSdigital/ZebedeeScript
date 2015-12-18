@@ -47,7 +47,4 @@ public class Connection {
         publish = new Endpoint(zebedee, "publish");
         collectionDetails = new Endpoint(zebedee, "collectionDetails");
     }
-    public boolean test() {
-        return true;
-    }
 }

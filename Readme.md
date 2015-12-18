@@ -35,13 +35,19 @@ collection review <collection name>
 #### Users
 ```python
 # Add a new user
-users add <email> <name> <password>
+users add <email> <name>
+
+# Set user password
+users password <email> <password>
 
 # Assign publisher permissions
-permissions publisher <email>
+users permissions publisher <email>
 
 # Assign admin permissions
-permissions admin <email>
+users permissions admin <email>
+
+# Assign viewer permissions
+users permissions viewer <email>
 ```
 
 #### Teams
@@ -53,11 +59,11 @@ teams add <team name>
 collection teams add <team name>
 ```
 
-## Database commands
+## Database
 Database commands work
-1) declare the root of your file system
-2) query the database using filter commands
-3) apply an operation
+- declare the root of your file system
+- query the database using filter commands
+- apply an operation
 
 ### Example
 ```python
@@ -68,6 +74,8 @@ filter uri_ends .json
 filter not json valid
 list
 ```
+
+### Commands
 
 #### Select database root
 ```python
@@ -85,7 +93,7 @@ filter uri_ends <value>
 ```
 
 #### Logic
-```
+```python
 # Not
 filter not [any other args]
 
