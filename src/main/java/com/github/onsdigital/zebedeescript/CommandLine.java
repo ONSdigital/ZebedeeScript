@@ -2,8 +2,11 @@ package com.github.onsdigital.zebedeescript;
 
 import com.github.davidcarboni.restolino.json.Serialiser;
 import com.github.onsdigital.zebedeescript.commands.json.IsoDateSerializer;
+import com.github.thomasridd.flatsy.util.FlatsyUtil;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,9 +20,9 @@ import java.util.Scanner;
 public class CommandLine {
     String mode = "z-script";
 
-    static Flatsy flatsy = new Flatsy();
-    static ZebedeeScript zebedeeScript = new ZebedeeScript();
-
+    Flatsy flatsy = new Flatsy();
+    ZebedeeScript zebedeeScript = new ZebedeeScript();
+    PrintStream defaultOut = System.out;
 
     public static void main(String[] args) {
         Serialiser.getBuilder().registerTypeAdapter(Date.class, new IsoDateSerializer());
@@ -38,7 +41,6 @@ public class CommandLine {
 
         }
     }
-
     private static void sayWelcome() {
         System.out.println();
         System.out.println();
@@ -49,14 +51,20 @@ public class CommandLine {
         System.out.println();
     }
 
+
+    public void setOutputStream(PrintStream outputStream) {
+        this.defaultOut = outputStream;
+        flatsy.setOutputStream(outputStream);
+    }
+
     private boolean processCommand(String command) {
         if (command.equalsIgnoreCase("exit")) {
             return false;
         } else if (command.trim().toLowerCase().startsWith("script")) {
             runScript(command);
         } else if (command.equalsIgnoreCase("") || command.startsWith("#") || command.startsWith("//")) {
-
             // try to process with zebedeescript ( a zebedee command )
+
         } else if (zebedeeScript.processCommand(command) == false) {
             // otherwise use flatsy ( a database command )
             flatsy.processCommand(command);
@@ -70,24 +78,26 @@ public class CommandLine {
      * @param command of the form "script [filename]"
      * @return success
      */
-    private boolean runScript(String command) {
+    boolean runScript(String command, boolean quiet) {
         List<String> components = Utils.commandArguments(command);
-        return runScript(Paths.get(components.get(1)));
+        return runScript(FlatsyUtil.pathsGet(components.get(1)), quiet);
     }
 
     /**
      * Run a script by walking all commands
      *
-     * @param path
+     * @param path the path of the script
      * @return
      */
-    private boolean runScript(Path path) {
+    public boolean runScript(Path path, boolean quiet) {
         if (!Files.exists(path) || Files.isDirectory(path)) { return false; }
 
-        try( Scanner scanner = new Scanner(path)) {
+        try (Scanner scanner = new Scanner(path)) {
             while (scanner.hasNextLine()) {
                 String command = scanner.nextLine();
-                System.out.println(">  " + command);
+
+                if(!quiet) defaultOut.println(">  " + command);
+
                 processCommand(command);
             }
         } catch (IOException e) {
@@ -95,5 +105,8 @@ public class CommandLine {
         }
 
         return true;
+    }
+    public boolean runScript(String command) {
+        return runScript(command, false);
     }
 }

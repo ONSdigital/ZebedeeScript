@@ -2,6 +2,8 @@ package com.github.onsdigital.zebedeescript;
 
 import com.github.thomasridd.flatsy.FlatsyCommandLine;
 
+import java.io.PrintStream;
+
 /**
  * Created by thomasridd on 07/12/2015.
  */
@@ -15,5 +17,9 @@ public class Flatsy {
         flatsyCli.runCommand(command);
 
         return true;
+    }
+    public void setOutputStream(PrintStream outputStream) {
+        this.flatsyCli.defaultOut = outputStream;
+
     }
 }
