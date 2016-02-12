@@ -11,6 +11,7 @@ import com.github.onsdigital.zebedeescript.commands.json.User;
 import com.github.thomasridd.flatsy.FlatsyDatabase;
 import com.github.thomasridd.flatsy.FlatsyFlatFileDatabase;
 import com.github.thomasridd.flatsy.FlatsyObjectType;
+import com.github.thomasridd.flatsy.operations.operators.Delete;
 import com.github.thomasridd.flatsy.operations.operators.Rename;
 import com.github.thomasridd.flatsy.operations.operators.Replace;
 import org.apache.http.HttpStatus;
@@ -186,6 +187,20 @@ public class ZebedeeScript {
         }
         return false;
     }
+
+    private boolean commandDelete(List<String> components) {
+        if(db != null) {
+            String uri = components.get(1);
+
+            // if newUri exists delete
+            if (db.get(uri).getType() != FlatsyObjectType.Null) {
+                Delete delete = new Delete();
+                db.get(uri).cursor().apply(delete);
+            }
+        }
+        return false;
+    }
+
 
     private boolean commandUsers(List<String> components) {
         if (components.size() == 1) { return false; }
