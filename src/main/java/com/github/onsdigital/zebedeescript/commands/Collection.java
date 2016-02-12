@@ -10,12 +10,12 @@ import com.github.thomasridd.flatsy.FlatsyDatabase;
 import com.github.thomasridd.flatsy.FlatsyFlatFileDatabase;
 import com.github.thomasridd.flatsy.query.FlatsyCursor;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.http.HttpStatus;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -42,6 +42,42 @@ public class Collection {
             System.out.println("Error creating collection");
         }
         return false;
+    }
+
+    public boolean download(Connection connection, Http session, String root) throws IOException {
+        for (String uri: description.inProgressUris)
+            download(connection, session, uri, Paths.get(root).resolve("inprogress"));
+        for (String uri: description.completeUris)
+            download(connection, session, uri, Paths.get(root).resolve("complete"));
+        for (String uri: description.reviewedUris)
+            download(connection, session, uri, Paths.get(root).resolve("reviewed"));
+        return true;
+    }
+
+    /**
+     * Download collection content at a uri
+     *
+     * @param connection
+     * @param session
+     * @param uri
+     * @param root
+     * @return
+     * @throws IOException
+     */
+    private boolean download(Connection connection, Http session, String uri, Path root) throws IOException {
+        Response<Path> pathResponse = downloadItem(connection, session, this.description.id, uri);
+        if (pathResponse.statusLine.getStatusCode() != HttpStatus.OK_200)
+            return false;
+
+        String saveUri = uri;
+        if (uri.startsWith("/"))
+            saveUri = uri.substring(1, uri.length());
+
+        try (InputStream stream=Files.newInputStream(pathResponse.body); OutputStream output=Files.newOutputStream(root.resolve(saveUri))){
+            IOUtils.copy(stream, output);
+        }
+
+        return true;
     }
 
     public static CollectionDescription createCollectionDescription(String collectionName) {
@@ -160,5 +196,8 @@ public class Collection {
         return session.post(contentEndpoint, "", String.class);
     }
 
-
+    private static Response<Path> downloadItem(Connection connection, Http session, String collectionId, String uri) throws IOException {
+        Endpoint contentEndpoint = connection.content.addPathSegment(collectionId).setParameter("uri", uri);
+        return session.get(contentEndpoint);
+    }
 }

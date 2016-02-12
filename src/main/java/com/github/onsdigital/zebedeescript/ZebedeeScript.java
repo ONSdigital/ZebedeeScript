@@ -37,20 +37,25 @@ public class ZebedeeScript {
     public boolean processCommand(String command) {
         List<String> components = Utils.commandArguments(command);
 
-        if (components.get(0).equalsIgnoreCase("connect")) {
-            commandConnect(components);
-        } else if (components.get(0).equalsIgnoreCase("login")) {
-            commandLogin(components);
-        } else if (components.get(0).equalsIgnoreCase("collection")) {
-            commandCollection(components);
-        } else if (components.get(0).equalsIgnoreCase("from")) {
-            commandFrom(components);
-            return false; // we want flatsy to fix this one too so return false
-        } else if (components.get(0).equalsIgnoreCase("move")) {
-            commandMove(components);
-        } else if (components.get(0).equalsIgnoreCase("users")) {
-            commandUsers(components);
-        } else {
+        try {
+            if (components.get(0).equalsIgnoreCase("connect")) {
+                commandConnect(components);
+            } else if (components.get(0).equalsIgnoreCase("login")) {
+                commandLogin(components);
+            } else if (components.get(0).equalsIgnoreCase("collection")) {
+                commandCollection(components);
+            } else if (components.get(0).equalsIgnoreCase("from")) {
+                commandFrom(components);
+                return false; // we want flatsy to fix this one too so return false
+            } else if (components.get(0).equalsIgnoreCase("move")) {
+                commandMove(components);
+            } else if (components.get(0).equalsIgnoreCase("users")) {
+                commandUsers(components);
+            } else {
+                return false;
+            }
+        } catch(Exception e) {
+            System.out.println("Error: " + e.getLocalizedMessage());
             return false;
         }
 
@@ -114,7 +119,7 @@ public class ZebedeeScript {
      * @param components
      * @return
      */
-    private boolean commandCollection(List<String> components) {
+    private boolean commandCollection(List<String> components) throws IOException {
         if (components.size() == 1) { return false; }
 
         if (components.get(1).equalsIgnoreCase("create")) {
@@ -138,13 +143,10 @@ public class ZebedeeScript {
             } else {
                 System.out.println("Command error for: collection build [collection name] [source path]");
             }
-        } else if (components.get(1).equalsIgnoreCase("add")) {
-            if (components.size() >= 5) {
-                String collectionName = components.get(2);
-                String asUri = components.get(3);
-                String sourcePath = components.get(4);
-            } else {
-                System.out.println("Command error for: collection add [collection name] [uri] [source path]");
+        } else if (components.get(1).equalsIgnoreCase("download")) {
+            if (components.size() == 3) {
+                String downloadPath = components.get(2);
+                this.current.download(connection, session, downloadPath);
             }
         } else if (components.get(1).equalsIgnoreCase("complete")) {
             if (this.current == null) {
@@ -157,6 +159,10 @@ public class ZebedeeScript {
                 System.out.println("Please sign into a collection with create, build, or checkout before reviewing items");
             } else {
                 this.current.review(connection, session);
+            }
+        } else if (components.get(1).equalsIgnoreCase("select")) {
+            if (components.size() == 2) {
+
             }
         }
         return false;

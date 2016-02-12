@@ -121,7 +121,7 @@ public class CommandLineTest {
         // a script that implements a complex operation
         try(PrintWriter writer = new PrintWriter(script.toFile(), "UTF-8")) {
             writer.println("from " + root);
-            writer.println("filter uri_ends births/adoption/bulletins/englandandwales/283368d3.html");
+            writer.println("filter uri_ends births/adoption/bulletins/englandandwales/2013-08-20/283368d3.html");
             writer.println("filter not json valid");
             writer.println("list");
         }

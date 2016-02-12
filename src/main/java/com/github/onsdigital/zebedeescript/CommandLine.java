@@ -23,7 +23,6 @@ public class CommandLine {
     Flatsy flatsy = new Flatsy();
     ZebedeeScript zebedeeScript = new ZebedeeScript();
     PrintStream defaultOut = System.out;
-
     public static void main(String[] args) {
         Serialiser.getBuilder().registerTypeAdapter(Date.class, new IsoDateSerializer());
 
@@ -57,7 +56,7 @@ public class CommandLine {
         flatsy.setOutputStream(outputStream);
     }
 
-    private boolean processCommand(String command) {
+    public boolean processCommand(String command) {
         if (command.equalsIgnoreCase("exit")) {
             return false;
         } else if (command.trim().toLowerCase().startsWith("script")) {
