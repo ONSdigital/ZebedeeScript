@@ -1,0 +1,29 @@
+from /Users/thomasridd/Documents/onswebsite/collection
+delete
+
+# copy contents of all current timeseries dataset files
+
+from /Users/thomasridd/Documents/onswebsite/zebedee/master
+filter files
+filter uri_contains /datasets/
+filter not uri_contains /previous/
+filter uri_ends data.json
+filter jsonpath $.type equals timeseries_dataset
+folder_copy /Users/thomasridd/Documents/onswebsite/collection
+
+from /Users/thomasridd/Documents/onswebsite/collection
+filter uri_contains /previous/
+delete
+
+# W A R N I N G
+# I am doing this locally for convenience
+from /Users/thomasridd/Documents/onswebsite/zebedee/collections
+delete
+
+login t.ridd@methods.co.uk
+collection build "csdbdatasets" /Users/thomasridd/Documents/onswebsite/collection
+collection complete
+
+login florence@magicroundabout.ons.gov.uk
+collection review
+

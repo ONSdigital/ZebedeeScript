@@ -1,0 +1,5 @@
+from	/Users/thomasridd/ons/release_calendar		
+filter files
+filter uri_ends data.json
+filter not json valid
+list

@@ -1,0 +1,15 @@
+# script /Users/thomasridd/ons/scripts/master.script.json
+
+script /Users/thomasridd/ons/scripts/generate_templates.script 
+
+script /Users/thomasridd/ons/scripts/update_releasedates.script 
+script /Users/thomasridd/ons/scripts/update_titles.script 
+script /Users/thomasridd/ons/scripts/update_provisionalDate.script 
+script /Users/thomasridd/ons/scripts/update_nationalStatistic.script 
+script /Users/thomasridd/ons/scripts/update_summaries.script 
+script /Users/thomasridd/ons/scripts/update_finalised 
+script /Users/thomasridd/ons/scripts/update_contacts.script 
+
+script /Users/thomasridd/ons/scripts/do_replacement.script 
+
+script /Users/thomasridd/ons/scripts/check_json_valid.script 

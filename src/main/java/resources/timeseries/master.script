@@ -1,0 +1,9 @@
+# begin by copying the original timeseries
+script /Users/thomasridd/Documents/onswebsite/scripts/timeseries/copy_master_timeseries.script
+
+# update json from scripts
+script /Users/thomasridd/Documents/onswebsite/scripts/timeseries/update_preunits.script
+script /Users/thomasridd/Documents/onswebsite/scripts/timeseries/update_units.script
+script /Users/thomasridd/Documents/onswebsite/scripts/timeseries/update_topics.script
+script /Users/thomasridd/Documents/onswebsite/scripts/timeseries/update_related_documents.script
+script /Users/thomasridd/Documents/onswebsite/scripts/timeseries/update_periods.script

@@ -1,0 +1,5 @@
+from	/Users/thomasridd/ons/release_calendar		
+filter files
+filter uri_ends data.json
+replace "nonono" false
+replace "yesyesyes" true
