@@ -13,6 +13,7 @@ public class Flatsy {
     public Flatsy() {
         flatsyCli = new FlatsyCommandLine();
     }
+
     public boolean processCommand(String command) {
         flatsyCli.runCommand(command);
 

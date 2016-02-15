@@ -5,11 +5,9 @@ import com.github.onsdigital.zebedeescript.commands.json.IsoDateSerializer;
 import com.github.thomasridd.flatsy.util.FlatsyUtil;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -23,6 +21,12 @@ public class CommandLine {
     Flatsy flatsy = new Flatsy();
     ZebedeeScript zebedeeScript = new ZebedeeScript();
     PrintStream defaultOut = System.out;
+
+
+    /**
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         Serialiser.getBuilder().registerTypeAdapter(Date.class, new IsoDateSerializer());
 
@@ -32,7 +36,7 @@ public class CommandLine {
 
         sayWelcome();
         while(doLoop) {
-            System.out.print((commandLine.mode + ":     ").substring(0,10));
+            System.out.print((commandLine.mode + ": "));
             String command = scanner.nextLine();
 
             if (command != null)
@@ -40,6 +44,10 @@ public class CommandLine {
 
         }
     }
+
+    /**
+     * Nuff said
+     */
     private static void sayWelcome() {
         System.out.println();
         System.out.println();
@@ -51,21 +59,42 @@ public class CommandLine {
     }
 
 
+    /**
+     * Set ZebedeeScript to print to an alternate print stream that the console
+     *
+     * Good for gathering output to an HTTP response or for test purposes
+     *
+     * @param outputStream
+     */
     public void setOutputStream(PrintStream outputStream) {
         this.defaultOut = outputStream;
         flatsy.setOutputStream(outputStream);
     }
 
+    /**
+     * Process a command
+     *
+     * @param command
+     * @return
+     */
     public boolean processCommand(String command) {
         if (command.equalsIgnoreCase("exit")) {
+
+            // Quit
             return false;
         } else if (command.trim().toLowerCase().startsWith("script")) {
+
+            // Run a script file
             runScript(command);
         } else if (command.equalsIgnoreCase("") || command.startsWith("#") || command.startsWith("//")) {
-            // try to process with zebedeescript ( a zebedee command )
 
-        } else if (zebedeeScript.processCommand(command) == false) {
-            // otherwise use flatsy ( a database command )
+            // Ignore
+
+        } else if (zebedeeScript.tryZebedeeCommand(command) == false) {
+
+            // try to process using Zebedee
+
+            // process with Flatsy if that falls through
             flatsy.processCommand(command);
         }
         return true;

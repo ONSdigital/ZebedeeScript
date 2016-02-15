@@ -35,23 +35,54 @@ public class ZebedeeScript {
 
     Http session;
 
-    public boolean processCommand(String command) {
+    /**
+     * Try to process a command line string with Zebedee
+     *
+     * @param command a command line
+     *
+     * @return false if the command should fall through to Flatsy
+     */
+    public boolean tryZebedeeCommand(String command) {
         List<String> components = Utils.commandArguments(command);
 
         try {
             if (components.get(0).equalsIgnoreCase("connect")) {
+
+                // Connect to a running instance of Zebedee
                 commandConnect(components);
             } else if (components.get(0).equalsIgnoreCase("login")) {
+
+                // Log in to Zebedee (pauses command line to allow passphrase entry)
                 commandLogin(components);
             } else if (components.get(0).equalsIgnoreCase("collection")) {
+
+                // Process a collection command
                 commandCollection(components);
-            } else if (components.get(0).equalsIgnoreCase("from")) {
-                commandFrom(components);
-                return false; // we want flatsy to fix this one too so return false
-            } else if (components.get(0).equalsIgnoreCase("move")) {
-                commandMove(components);
             } else if (components.get(0).equalsIgnoreCase("users")) {
+
+                // Process a user command
                 commandUsers(components);
+            } else if (components.get(0).equalsIgnoreCase("from")) {
+
+                // Set the flat file database root
+                commandFrom(components);
+                return false; // we want flatsy to process this one too so return false
+            } else if (components.get(0).equalsIgnoreCase("move")) {
+
+                // Move a file and update all links within content
+                commandMove(components);
+            } else if (components.get(0).equalsIgnoreCase("delete")) {
+
+                // Delete files
+                if(components.size() == 1) {
+
+                    // delete alone is a Flatsy keyword and should fall through
+                    return false;
+                } else {
+
+                    // delete with a uri should be processed by the delete command
+                    commandDelete(components);
+                }
             } else {
                 return false;
             }
@@ -188,6 +219,12 @@ public class ZebedeeScript {
         return false;
     }
 
+    /**
+     * Delete a folder from the file system
+     *
+     * @param components [delete, uri]
+     * @return
+     */
     private boolean commandDelete(List<String> components) {
         if(db != null) {
             String uri = components.get(1);

@@ -3,7 +3,6 @@ package com.github.onsdigital.zebedeescript.api;
 import com.github.davidcarboni.restolino.framework.Api;
 import com.github.davidcarboni.restolino.json.Serialiser;
 import com.github.onsdigital.zebedeescript.CommandLine;
-import com.github.onsdigital.zebedeescript.json.ZebedeeResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,19 +27,34 @@ public class Command {
     public void postCommand(HttpServletRequest request,
                            HttpServletResponse response) throws IOException {
 
+        // Parse a command list from the request body
         String[] commands = Serialiser.deserialise(request, String[].class);
 
+        // Lazy initialise a command line
         if (cli == null)
             cli = new CommandLine();
 
+        // Run the command list and build an array of output
         List<String> result = new ArrayList<>();
         for(String command: Arrays.asList(commands))
             result.add(runCommand(command));
 
+        // Respond
         Serialiser.serialise(response, result);
     }
 
+    /**
+     * Run a command
+     *
+     * Hijack console output to print to an in memory stream
+     *
+     * @param command and ZebedeeScript command
+     *
+     * @return the console output
+     * @throws IOException
+     */
     private String runCommand(String command) throws IOException {
+
         try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             PrintStream ps = new PrintStream(baos);
             cli.setOutputStream(ps);
